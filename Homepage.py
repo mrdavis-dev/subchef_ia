@@ -8,15 +8,8 @@ genai.configure(api_key = st.secrets["gemini"]["api_key"])
 
 model = genai.GenerativeModel('gemini-1.5-flash')
 
-# st.set_page_config(
-#     page_title="SubChef App", 
-#     page_icon="📒",
-#     layout="wide",
-#     initial_sidebar_state="expanded"
-#     )
 
 sidebar_logo = "images/subchef.png"
-logo = "images/subchef.png"
 st.logo(sidebar_logo)
 
 authenticate()
