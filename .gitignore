@@ -1,0 +1,5 @@
+# Archivos de configuración
+.streamlit/secrets.toml
+
+venv
+
