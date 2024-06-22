@@ -1,0 +1,8 @@
+# Ignorar los archivos de configuración de Streamlit
+.streamlit/secrets.toml
+
+# Otros archivos y carpetas a ignorar
+node_modules/
+.env
+__pycache__/
+*.pyc
