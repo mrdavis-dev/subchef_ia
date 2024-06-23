@@ -1,3 +1,4 @@
+import os
 import streamlit as st
 from streamlit_tags import st_tags
 from auth import authenticate
@@ -11,6 +12,9 @@ model = genai.GenerativeModel('gemini-1.5-flash')
 
 sidebar_logo = "images/subchef.png"
 st.logo(sidebar_logo)
+
+client_id = os.getenv('client_id')
+st.write(f"Client ID: {os.client_id}")
 
 authenticate()
 # Conexión a la base de datos
