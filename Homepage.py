@@ -14,7 +14,7 @@ sidebar_logo = "images/subchef.png"
 st.logo(sidebar_logo)
 
 client_id = os.getenv('CLIENT_ID')
-st.write(f"Client ID: {os.CLIENT_ID}")
+st.write(f"Client ID: {client_id}")
 
 authenticate()
 # Conexión a la base de datos
