@@ -91,6 +91,7 @@ if st.session_state.recetas_generadas:
             # Botón para guardar la receta
             if st.button(f"Guardar Receta {i}", key=f"guardar_{i}_{titulo}"):
                 receta_documento = {
+                    'user': st.session_state.email,
                     'titulo': titulo,
                     'cuerpo': cuerpo,
                     'tipo': tipo_receta,

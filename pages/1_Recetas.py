@@ -21,9 +21,9 @@ categoria = st.selectbox(
 
 def find_recetas(tipo):
     if categoria == "Todas":
-        recetas = collection.find()
+        recetas = collection.find({"user": st.session_state.email})
     else:
-        recetas = collection.find({"tipo": categoria})
+        recetas = collection.find({"tipo": categoria, "user": st.session_state.email})
     
     for receta in recetas:
         with st.expander(receta['titulo']):
