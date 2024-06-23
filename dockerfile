@@ -1,7 +1,7 @@
 # Usa una imagen base oficial de Python
 FROM python:3.10-slim
 
-# Instala gcc (necesario para algunas dependencias de Python)
+# Instala gcc y otras dependencias necesarias
 RUN apt-get update && apt-get install -y gcc
 
 # Establecer el directorio de trabajo
@@ -22,4 +22,4 @@ COPY . .
 EXPOSE 8501
 
 # Activar el entorno virtual y ejecutar la aplicación Streamlit
-CMD ["/bin/bash", "-c", ". /opt/venv/bin/activate && streamlit run Homepage.py"]
+CMD ["/bin/bash", "-c", ". /opt/venv/bin/activate && streamlit run Homepage.py --server.port $PORT --server.address 0.0.0.0"]
