@@ -13,8 +13,8 @@ model = genai.GenerativeModel('gemini-1.5-flash')
 sidebar_logo = "images/subchef.png"
 st.logo(sidebar_logo)
 
-client_id = os.getenv('client_id')
-st.write(f"Client ID: {os.client_id}")
+client_id = os.getenv('CLIENT_ID')
+st.write(f"Client ID: {os.CLIENT_ID}")
 
 authenticate()
 # Conexión a la base de datos
