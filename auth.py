@@ -18,11 +18,12 @@ if firebase_credentials:
 else:
     st.error("No se encontraron credenciales de Firebase en las variables de entorno.")
 
-# Inicializar cliente Google OAuth2
-client_id = os.getenv("client_id")
-client_secret = os.getenv("client_secret")
-redirect_url = os.getenv("redirect_uri")
+# Configuración de credenciales de OAuth2 para Google
+client_id = os.getenv("client_id")  # Reemplaza con tus propios valores
+client_secret = os.getenv("client_secret")  # Reemplaza con tus propios valores
+redirect_uri = os.getenv("redirect_uri")  # Reemplaza con tus propios valores
 
+# Inicializar cliente Google OAuth2
 client = GoogleOAuth2(client_id=client_id, client_secret=client_secret)
 
 # Conexión a la base de datos
@@ -38,10 +39,10 @@ async def get_email(client: GoogleOAuth2, token: str):
 
 def get_logged_in_user_email():
     try:
-        code = st.query_params.get('code')
+        query_params = st.query_params
+        code = query_params.get('code')
         if code:
-            token = asyncio.run(get_access_token(client, redirect_url, code))  # No es necesario indexar si solo hay un código
-
+            token = asyncio.run(get_access_token(client, redirect_uri, code))
             if token:
                 user_id, user_email = asyncio.run(get_email(client, token['access_token']))
                 if user_email:
@@ -56,8 +57,7 @@ def get_logged_in_user_email():
                         users_collection.insert_one({"email": user_email})
 
                     st.session_state.email = user.email
-                    # Forzar a Streamlit a recargar la aplicación
-                    st.rerun()
+                    st.experimental_rerun()  # Forzar a Streamlit a recargar la aplicación
                     return user.email
         return None
     except Exception as e:
@@ -66,9 +66,25 @@ def get_logged_in_user_email():
 
 def show_login_button():
     authorization_url = asyncio.run(client.get_authorization_url(
-        redirect_url,
+        redirect_uri,
         scope=["email", "profile"],
         extras_params={"access_type": "offline"},
     ))
     st.markdown(f'<a href="{authorization_url}" target="_self">Iniciar sesión</a>', unsafe_allow_html=True)
     get_logged_in_user_email()
+
+def app():
+    st.title('Bienvenido!')
+    if not st.session_state.email:
+        get_logged_in_user_email()
+        if not st.session_state.email:
+            show_login_button()
+
+    if st.session_state.email:
+        st.write(st.session_state.email)
+        if st.button("Cerrar sesión", key="logout_button"):
+            st.session_state.email = ''
+            st.rerun()
+
+if __name__ == "__main__":
+    app()
