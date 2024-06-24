@@ -1,0 +1,87 @@
+Metadata-Version: 2.1
+Name: StreamlitGAuth
+Version: 2.0.9
+Summary: st_googleauth is a Python library that provides Streamlit integration for Google Authenticator. It enables single sign-on (SSO) with Google Authenticator for Streamlit applications.
+Author: rahul katoch
+Author-email: rahulkatoch99@gmail.com
+Maintainer: Rahul Katoch
+Maintainer-email: rahulkatoch99@gmail.com
+License: MIT
+Keywords: streamlit google-authenticator SSO goole_oauth
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Requires-Python: >=3.6
+Description-Content-Type: text/markdown
+Requires-Dist: streamlit
+
+# StreamlitGAuth
+
+StreamlitGAuth is a Python library that simplifies the integration of Google Authenticator-based Single Sign-On (SSO) with Streamlit applications. With StreamlitGAuth, you can enhance the security of your Streamlit apps by enabling two-factor authentication through Google Authenticator.
+
+![Sample image](https://github.com/Rahulkatoch99/Appening-assigment/blob/master/streamlitGauth.png?raw=true)
+
+## Installation
+
+You can install StreamlitGAuth using pip
+
+# Usage
+
+```python
+import streamlit as st
+from StreamlitGauth.google_auth import Google_auth
+
+client_id = ""
+client_secret = ""
+redirect_uri = "http://localhost:8501"
+
+login = Google_auth(
+    clientId=client_id, clientSecret=client_secret, redirect_uri=redirect_uri
+)
+
+if login == "authenticated":
+    st.success("hello")
+    pass
+
+
+
+```
+
+Replace "your_client_id" and "your_client_secret" with your actual Google OAuth 2.0 credentials.
+
+# Example Streamlit Application
+
+```python
+
+import streamlit as st
+from StreamlitGauth.google_auth import Google_auth
+
+
+client_id = "hasjh5jk498ufiu3h89g8-aghdszjhk3k.apps.googleusercontent.com"
+client_secret = "afsghfbkhfdjdsgfdjhfjkfhjkfhkjhkjdhks"
+redirect_uri = "http://localhost:8501"
+
+login = Google_auth(clientId=client_id, clientSecret=client_secret, redirect_uri=redirect_uri)
+
+if login == "authenticated":
+    # your streamlit applciation
+    pass
+
+else:
+    st.warning("login failed")
+
+```
+
+# Contributing
+
+If you would like to contribute to StreamlitGAuth, please open an issue or submit a pull request on our GitHub repository.
+
+# License
+
+This library is released under the [MIT License](LICENSE) to encourage collaboration and use in various applications.
