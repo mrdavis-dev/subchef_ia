@@ -5,16 +5,13 @@ from auth import authenticate
 from db import get_db_connection
 import google.generativeai as genai
 
-genai.configure(api_key = st.secrets["gemini"]["api_key"])
+genai.configure(api_key = os.getenv('GEMINI_API_KEY'))
 
 model = genai.GenerativeModel('gemini-1.5-flash')
 
 
 sidebar_logo = "images/subchef.png"
 st.logo(sidebar_logo)
-
-client_id = os.getenv('CLIENT_ID')
-st.write(f"Client ID: {client_id}")
 
 authenticate()
 # Conexión a la base de datos
