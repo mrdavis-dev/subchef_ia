@@ -55,9 +55,9 @@ def get_logged_in_user_email():
                     if not users_collection.find_one({"email": user_email}):
                         users_collection.insert_one({"email": user_email})
 
-                        st.session_state.email = user.email
-                        # Redirigir a una nueva URL sin parámetros de consulta
-                        st.experimental_rerun()
+                    st.session_state.email = user.email
+                    # Forzar a Streamlit a recargar la aplicación
+                    st.rerun()
                     return user.email
         return None
     except Exception as e:
