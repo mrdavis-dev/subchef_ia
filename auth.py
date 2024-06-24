@@ -1,48 +1,76 @@
-# auth.py
 import os
 import streamlit as st
-from StreamlitGauth.google_auth import Google_auth
 from db import get_db_connection
-
-# Configurar las credenciales de Google OAuth
-client_id = os.getenv("client_id")
-client_secret = os.getenv("client_secret")
-redirect_uri = os.getenv("redirect_uri")
-
-# Inicializar la autenticación de Google
-google_auth = Google_auth(clientId=client_id, clientSecret=client_secret, redirect_uri=redirect_uri)
+import firebase_admin
+from firebase_admin import auth, exceptions, credentials, initialize_app
+import asyncio
+from httpx_oauth.clients.google import GoogleOAuth2
+import json
 
 # Conexión a la base de datos
 db = get_db_connection()
 users_collection = db['users']
 
-def authenticate():
-    if "authenticated" not in st.session_state:
-        st.session_state["authenticated"] = False
+# Cargar credenciales desde variable de entorno
+firebase_credentials = os.getenv('FIREBASE_CREDENTIALS')
+if firebase_credentials:
+    cred = credentials.Certificate(json.loads(firebase_credentials))
+    try:
+        firebase_admin.get_app()
+    except ValueError:
+        initialize_app(cred)
+else:
+    st.error("No credentials found in environment variables.")
 
-    if not st.session_state["authenticated"]:
-        login_status = google_auth.login()
-        if login_status == "authenticated":
-            st.session_state["authenticated"] = True
-            st.session_state["email"] = google_auth.email
-            email = st.session_state["email"]
-            
-            # Verificar si el usuario ya existe en la base de datos
-            user = users_collection.find_one({"email": email})
-            if user:
-                st.write(f"Bienvenido, {email}!")
-            else:
-                # Guardar el nuevo usuario en la base de datos
-                users_collection.insert_one({"email": email})
-                st.write(f"¡Bienvenido, nuevo usuario! Su correo electrónico '{email}' ha sido registrado.")
-        else:
-            st.error("Autenticación fallida. Por favor, intenta nuevamente.")
-            st.stop()
-        
 
-    else:
-        email = st.session_state["email"]
-        st.write(f"Bienvenido, {email}!")
+# Initialize Google OAuth2 client
+client_id = os.getenv("client_id")
+client_secret = os.getenv("client_secret")
+redirect_url = os.getenv("redirect_uri")
 
-# Llamar a la función de autenticación en el archivo principal
-authenticate()
+client = GoogleOAuth2(client_id=client_id, client_secret=client_secret)
+
+# Funciones de autenticación
+async def get_access_token(client: GoogleOAuth2, redirect_url: str, code: str):
+    return await client.get_access_token(code, redirect_url)
+
+async def get_email(client: GoogleOAuth2, token: str):
+    user_id, user_email = await client.get_id_email(token)
+    return user_id, user_email
+
+def get_logged_in_user_email():
+    try:
+        query_params = st.query_params
+        code = query_params.get('code')
+        if code:
+            token = asyncio.run(get_access_token(client, redirect_url, code))
+            st.experimental_set_query_params()
+
+            if token:
+                user_id, user_email = asyncio.run(get_email(client, token['access_token']))
+                if user_email:
+                    # Verificar si el usuario ya existe en Firebase
+                    try:
+                        user = auth.get_user_by_email(user_email)
+                    except exceptions.FirebaseError:
+                        user = auth.create_user(email=user_email)
+                    
+                    # Verificar si el usuario ya existe en MongoDB
+                    if not users_collection.find_one({"email": user_email}):
+                        users_collection.insert_one({"email": user_email})
+
+                    st.session_state.email = user.email
+                    return user.emaill
+        return None
+    except Exception as e:
+        st.error(f"Error during login: {e}")
+        return None
+
+def show_login_button():
+    authorization_url = asyncio.run(client.get_authorization_url(
+        redirect_url,
+        scope=["email", "profile"],
+        extras_params={"access_type": "offline"},
+    ))
+    st.markdown(f'<a href="{authorization_url}" target="_self">Login</a>', unsafe_allow_html=True)
+    get_logged_in_user_email()

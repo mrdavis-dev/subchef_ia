@@ -1,6 +1,8 @@
 # Ignorar los archivos de configuración de Streamlit
 .streamlit/secrets.toml
 
+subchef-app-50de971389f8.json
+
 # Otros archivos y carpetas a ignorar
 .env
 

@@ -1,4 +1,4 @@
-#!/home/dev/py_projects/subchefia/venv/bin/python3
+#!/home/dev/py_projects/subchefia/venv/bin/python
 # -*- coding: utf-8 -*-
 import re
 import sys
