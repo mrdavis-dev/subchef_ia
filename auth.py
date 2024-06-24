@@ -7,11 +7,7 @@ import asyncio
 from httpx_oauth.clients.google import GoogleOAuth2
 import json
 
-# Conexión a la base de datos
-db = get_db_connection()
-users_collection = db['users']
-
-# Cargar credenciales desde variable de entorno
+# Cargar credenciales desde variables de entorno
 firebase_credentials = os.getenv('FIREBASE_CREDENTIALS')
 if firebase_credentials:
     cred = credentials.Certificate(json.loads(firebase_credentials))
@@ -20,17 +16,19 @@ if firebase_credentials:
     except ValueError:
         initialize_app(cred)
 else:
-    st.error("No credentials found in environment variables.")
+    st.error("No se encontraron credenciales de Firebase en las variables de entorno.")
 
-
-# Initialize Google OAuth2 client
+# Inicializar cliente Google OAuth2
 client_id = os.getenv("client_id")
 client_secret = os.getenv("client_secret")
 redirect_url = os.getenv("redirect_uri")
 
 client = GoogleOAuth2(client_id=client_id, client_secret=client_secret)
 
-# Funciones de autenticación
+# Conexión a la base de datos
+db = get_db_connection()
+users_collection = db['users']
+
 async def get_access_token(client: GoogleOAuth2, redirect_url: str, code: str):
     return await client.get_access_token(code, redirect_url)
 
@@ -40,11 +38,9 @@ async def get_email(client: GoogleOAuth2, token: str):
 
 def get_logged_in_user_email():
     try:
-        query_params = st.query_params
-        code = query_params.get('code')
+        code = st.query_params.get('code')
         if code:
-            token = asyncio.run(get_access_token(client, redirect_url, code))
-            st.experimental_set_query_params()
+            token = asyncio.run(get_access_token(client, redirect_url, code))  # No es necesario indexar si solo hay un código
 
             if token:
                 user_id, user_email = asyncio.run(get_email(client, token['access_token']))
@@ -60,10 +56,12 @@ def get_logged_in_user_email():
                         users_collection.insert_one({"email": user_email})
 
                     st.session_state.email = user.email
-                    return user.emaill
+                    # Redirigir a una nueva URL sin parámetros de consulta
+                    st.experimental_rerun()
+                    return user.email
         return None
     except Exception as e:
-        st.error(f"Error during login: {e}")
+        st.error(f"Error durante el inicio de sesión: {e}")
         return None
 
 def show_login_button():
@@ -72,5 +70,5 @@ def show_login_button():
         scope=["email", "profile"],
         extras_params={"access_type": "offline"},
     ))
-    st.markdown(f'<a href="{authorization_url}" target="_self">Login</a>', unsafe_allow_html=True)
+    st.markdown(f'<a href="{authorization_url}" target="_self">Iniciar sesión</a>', unsafe_allow_html=True)
     get_logged_in_user_email()
