@@ -1,90 +1,22 @@
 import os
 import streamlit as st
 from db import get_db_connection
-import firebase_admin
-from firebase_admin import auth, exceptions, credentials, initialize_app
-import asyncio
-from httpx_oauth.clients.google import GoogleOAuth2
-import json
+from werkzeug.security import generate_password_hash, check_password_hash
 
-# Cargar credenciales desde variables de entorno
-firebase_credentials = os.getenv('FIREBASE_CREDENTIALS')
-if firebase_credentials:
-    cred = credentials.Certificate(json.loads(firebase_credentials))
-    try:
-        firebase_admin.get_app()
-    except ValueError:
-        initialize_app(cred)
-else:
-    st.error("No se encontraron credenciales de Firebase en las variables de entorno.")
+def authenticate_user(username, password):
+    db = get_db_connection()
+    user_collection = db['users']
+    user = user_collection.find_one({'username': username})
+    
+    if user and check_password_hash(user['password'], password):
+        return True
+    return False
 
-# Configuración de credenciales de OAuth2 para Google
-client_id = os.getenv("client_id")  # Reemplaza con tus propios valores
-client_secret = os.getenv("client_secret")  # Reemplaza con tus propios valores
-redirect_uri = os.getenv("redirect_uri")  # Reemplaza con tus propios valores
-
-# Inicializar cliente Google OAuth2
-client = GoogleOAuth2(client_id=client_id, client_secret=client_secret)
-
-# Conexión a la base de datos
-db = get_db_connection()
-users_collection = db['users']
-
-async def get_access_token(client: GoogleOAuth2, redirect_url: str, code: str):
-    return await client.get_access_token(code, redirect_url)
-
-async def get_email(client: GoogleOAuth2, token: str):
-    user_id, user_email = await client.get_id_email(token)
-    return user_id, user_email
-
-def get_logged_in_user_email():
-    try:
-        query_params = st.query_params
-        code = query_params.get('code')
-        if code:
-            token = asyncio.run(get_access_token(client, redirect_uri, code))
-            if token:
-                user_id, user_email = asyncio.run(get_email(client, token['access_token']))
-                if user_email:
-                    # Verificar si el usuario ya existe en Firebase
-                    try:
-                        user = auth.get_user_by_email(user_email)
-                    except exceptions.FirebaseError:
-                        user = auth.create_user(email=user_email)
-                    
-                    # Verificar si el usuario ya existe en MongoDB
-                    if not users_collection.find_one({"email": user_email}):
-                        users_collection.insert_one({"email": user_email})
-
-                    st.session_state.email = user.email
-                    st.experimental_rerun()  # Forzar a Streamlit a recargar la aplicación
-                    return user.email
-        return None
-    except Exception as e:
-        st.error(f"Error durante el inicio de sesión: {e}")
-        return None
-
-def show_login_button():
-    authorization_url = asyncio.run(client.get_authorization_url(
-        redirect_uri,
-        scope=["email", "profile"],
-        extras_params={"access_type": "offline"},
-    ))
-    st.markdown(f'<a href="{authorization_url}" target="_self">Iniciar sesión</a>', unsafe_allow_html=True)
-    get_logged_in_user_email()
-
-def app():
-    st.title('Bienvenido!')
-    if not st.session_state.email:
-        get_logged_in_user_email()
-        if not st.session_state.email:
-            show_login_button()
-
-    if st.session_state.email:
-        st.write(st.session_state.email)
-        if st.button("Cerrar sesión", key="logout_button"):
-            st.session_state.email = ''
-            st.rerun()
-
-if __name__ == "__main__":
-    app()
+def create_user(username, password):
+    db = get_db_connection()
+    user_collection = db['users']
+    if user_collection.find_one({'username': username}):
+        return False
+    hashed_password = generate_password_hash(password, method='sha256')
+    user_collection.insert_one({'username': username, 'password': hashed_password})
+    return True

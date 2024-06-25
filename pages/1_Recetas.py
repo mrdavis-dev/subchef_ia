@@ -1,5 +1,4 @@
 import streamlit as st
-from auth import get_logged_in_user_email, show_login_button
 from db import get_db_connection
 
 def main():
@@ -8,35 +7,34 @@ def main():
 
     st.title("Recetas")
 
-    user_email = get_logged_in_user_email()
+    user_email = st.session_state.username
     if not user_email:
         st.warning("Por favor, inicia sesión para continuar.")
-        show_login_button()
         st.stop()
     else:
-
         st.success(f"¡Bienvenido {user_email}!")
         st.write("Aquí puedes ver y gestionar tus recetas.")
+        
         if st.button("Logout"):
-            st.session_state.email = ''
-            st.experimental_rerun()
+            st.session_state.username = ''  # Limpiar la sesión de usuario
+            st.experimental_rerun()  # Recargar la aplicación para aplicar cambios
         
         db = get_db_connection()
         collection = db['recetas']
 
         st.title("📒 Recetas")
-        st.subheader("Aqui podras ver todas tus recetas guardadas")
+        st.subheader("Aquí puedes ver todas tus recetas guardadas")
 
         categoria = st.selectbox(
-            "Selecciona una categoria:",
-            ("Todas", "Fitnes", "Postres", "Desayuno", "Almuerzo", "Cena", "Meriendas")
+            "Selecciona una categoría:",
+            ("Todas", "Fitness", "Postres", "Desayuno", "Almuerzo", "Cena", "Meriendas")
         )
 
         def find_recetas(tipo):
             if categoria == "Todas":
-                recetas = collection.find({"user": st.session_state.email})
+                recetas = collection.find({"user": user_email})
             else:
-                recetas = collection.find({"tipo": categoria, "user": st.session_state.email})
+                recetas = collection.find({"tipo": categoria, "user": user_email})
             
             for receta in recetas:
                 with st.expander(receta['titulo']):
@@ -49,7 +47,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
-
