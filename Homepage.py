@@ -3,6 +3,7 @@ import streamlit as st
 from streamlit_tags import st_tags
 from db import get_db_connection
 from auth import authenticate_user, create_user
+from session_manager import get_session_data, authenticate_user, logout
 import google.generativeai as genai
 
 # Configurar la API de Google Generative AI
@@ -24,6 +25,7 @@ def login():
             st.success("Login successful")
             st.session_state.authenticated = True
             st.session_state.username = username
+            st.experimental_rerun()
         else:
             st.error("Username or password is incorrect")
 
@@ -44,8 +46,8 @@ def signup():
                 st.error("Username already exists")
 
 def logout():
-    st.session_state.authenticated = False
-    st.session_state.username = ''
+    logout()
+    st.experimental_rerun()
 
 def save_receta(doc_receta, recetas_collection):
     if doc_receta:

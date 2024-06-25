@@ -1,4 +1,3 @@
-import os
 import bcrypt
 from db import get_db_connection
 
