@@ -25,7 +25,6 @@ def main():
         st.stop()
 
     st.write(f"**Usuario:** {user_data['username']}")
-    st.write(f"**Email:** {user_data['email']}")
 
     st.subheader("Editar Contraseña")
     current_password = st.text_input("Contraseña actual:", type="password")

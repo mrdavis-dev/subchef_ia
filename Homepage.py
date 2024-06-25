@@ -3,7 +3,6 @@ import streamlit as st
 from streamlit_tags import st_tags
 from db import get_db_connection
 from auth import authenticate_user, create_user
-from session_manager import get_session_data, authenticate_user, logout
 import google.generativeai as genai
 
 # Configurar la API de Google Generative AI
@@ -25,6 +24,7 @@ def login():
             st.success("Login successful")
             st.session_state.authenticated = True
             st.session_state.username = username
+            # Recargar la aplicación para mostrar el contenido principal
             st.experimental_rerun()
         else:
             st.error("Username or password is incorrect")
@@ -46,8 +46,8 @@ def signup():
                 st.error("Username already exists")
 
 def logout():
-    logout()
-    st.experimental_rerun()
+    st.session_state.authenticated = False
+    st.session_state.username = ''
 
 def save_receta(doc_receta, recetas_collection):
     if doc_receta:
@@ -62,6 +62,8 @@ def main():
         st.session_state.authenticated = False
         st.session_state.username = ''
 
+    st.button("Logout", on_click=logout)
+    
     # Encabezado que se muestra siempre
     st.title("🤖 SubChef IA")
     st.subheader("Crea recetas utilizando los ingredientes disponibles en tu despensa.")
@@ -143,9 +145,8 @@ def main():
                             'ingredientes': ", ".join(ingredientes)
                         }
                         save_receta(receta_documento, recetas_collection)
-        
-        if st.button("Logout"):
-            logout()
+
+
     else:
         choice = st.radio("", ["Iniciar sesión", "Registrarse"], index=0, horizontal=True)
         if choice == "Iniciar sesión":
@@ -153,10 +154,8 @@ def main():
         elif choice == "Registrarse":
             signup()
 
-        # Verificar si el usuario está autenticado
         if not st.session_state.authenticated:
             st.warning("Por favor, inicia sesión para continuar.")
-            st.stop()  # Detiene la ejecución del resto de la página
 
 if __name__ == '__main__':
     main()
