@@ -17,6 +17,6 @@ def create_user(username, password):
     user_collection = db['users']
     if user_collection.find_one({'username': username}):
         return False
-    hashed_password = generate_password_hash(password, method='sha256')
+    hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
     user_collection.insert_one({'username': username, 'password': hashed_password})
     return True
