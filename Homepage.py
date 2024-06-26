@@ -61,8 +61,6 @@ def main():
     if 'authenticated' not in st.session_state:
         st.session_state.authenticated = False
         st.session_state.username = ''
-
-    st.button("Logout", on_click=logout)
     
     # Encabezado que se muestra siempre
     st.title("🤖 SubChef IA")
@@ -70,6 +68,7 @@ def main():
     st.text("version beta ⌛")
 
     if st.session_state.authenticated:
+        st.button("Logout", on_click=logout)
         st.success(f"¡Bienvenido {st.session_state.username}!")
 
         # Conexión a la base de datos
