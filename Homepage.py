@@ -81,7 +81,7 @@ def main():
             ("Fitness", "Postres", "Desayuno", "Almuerzo", "Cena", "Meriendas")
         )
 
-        st.write("Ingrese los ingredientes disponibles (presione Enter para agregar cada ingrediente):")
+        st.write("Ingrese los ingredientes disponibles :red[(presione Enter para agregar cada ingrediente)]:")
         # Utilizando streamlit-tags para manejar los ingredientes como etiquetas
         ingredientes = st_tags(
             label='',
